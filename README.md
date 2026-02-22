@@ -1,4 +1,3 @@
-
 # Hello World on TON Blockchain
 ## Deploy your first smart contract to testnet in 45 minutes
 
