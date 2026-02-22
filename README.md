@@ -15,13 +15,11 @@ By the end, you'll have a working, live smart contract on the TON testnet.
 - Basic familiarity with the command line and Git
 - A [TON wallet](https://docs.ton.org/ecosystem/wallet-apps/tonkeeper) with
   [testnet Toncoin](https://docs.ton.org/ecosystem/wallet-apps/get-coins)
-- Node.js v22 or later - [Download Here](https://nodejs.org)
-    - verify installation
-        ```bash
-          node -v
-          npm -v
-        ```
-
+- [Node.js v22 or later](https://nodejs.org) — verify your installation:
+```bash
+  node -v
+  npm -v
+```
 
 ---
 
@@ -30,7 +28,6 @@ By the end, you'll have a working, live smart contract on the TON testnet.
 A smart contract written in Tolk that stores a "Hello World" greeting
 on the TON testnet. Once deployed, anyone can read the greeting by
 calling a getter — no transaction, no gas fee.
-
 
 ---
 
@@ -46,18 +43,14 @@ Run this command to create a new project:
 npm create ton@latest -- hello-world --contractName HelloWorld --type tolk-empty
 ```
 
-> ⚠️ **Contract names must be PascalCase** — letters only, no underscores,
-> numbers, or special characters. `HelloWorld` is correct; `Hello_World`
-> will throw an error.
->
-> <br>
-> 💡 **Why is the file named `hello_world.tolk` and not `HelloWorld.tolk`?**  
-> Blueprint automatically converts your PascalCase contract name to
-> snake_case for the filename. `HelloWorld` becomes `hello_world.tolk`.
-> This is expected — you haven't done anything wrong.
+> **Warning:** Contract names must be PascalCase — letters only, no
+> underscores, numbers, or special characters. `HelloWorld` is correct;
+> `Hello_World` will throw an error.
 
-<br>
-
+After the command runs, you'll notice the contract file is named
+`hello_world.tolk`, not `HelloWorld.tolk`. This is expected — Blueprint
+automatically converts your PascalCase contract name to snake_case for
+the filename.
 
 This creates the following structure:
 ```
@@ -81,7 +74,6 @@ cd hello-world
 
 ---
 
-
 ## What is a smart contract?
 
 A smart contract is a program that lives on the blockchain. Once deployed,
@@ -95,7 +87,6 @@ On TON, every smart contract has two things:
 
 In this tutorial, your `HelloWorld` contract will store one piece of data
 — a greeting — and expose one way to read it.
-
 
 ---
 
@@ -127,7 +118,7 @@ fun onInternalMessage(in: InMessage) {
 }
 ```
 
-### Contract details:
+### Contract details
 
 **`Storage`** is where your contract remembers things. Think of it as a
 tiny database that stays on-chain between transactions. It holds one
@@ -135,8 +126,8 @@ value: the greeting, stored as a `cell`.
 
 &nbsp;
 
-> 💡 **What is a `cell`?** Cell is TON's fundamental data storage unit.
-> Everything on-chain — strings, numbers, structs — is encoded into cells.
+> **Note:** Cell is TON's fundamental data storage unit. Everything
+> on-chain — strings, numbers, structs — is encoded into cells.
 
 &nbsp;
 
@@ -151,9 +142,9 @@ It returns the greeting with no transaction needed and no gas charged.
 
 &nbsp;
 
-> 💡 **What does `lazy` mean?** It tells the compiler to defer reading
-> storage fields from the chain until they are actually accessed. This
-> avoids unnecessary reads and saves gas.
+> **Note:** The `lazy` keyword tells the compiler to defer reading storage
+> fields from the chain until they are actually accessed. This avoids
+> unnecessary reads and saves gas.
 
 &nbsp;
 
@@ -163,12 +154,11 @@ handled here.
 
 &nbsp;
 
-> ⚠️ **Common mistakes to avoid:**
+> **Warning:** Common mistakes to avoid:
 >
 > - The data type is `cell`, not `Cell` — Tolk is case-sensitive
 > - The functions are `fromCell()` and `toCell()` — not `FromCell` or `tocell`
 > - The keyword is `contract`, not `Contract` — lowercase throughout
-
 
 ---
 
@@ -185,10 +175,9 @@ npx blueprint build HelloWorld
 Expected output:
 ```
 Build script running, compiling HelloWorld
-🔧 Using tolk version 1.2.0...
+Using tolk version 1.2.0...
 
-
-✅ Compiled successfully! Cell BOC result:
+Compiled successfully! Cell BOC result:
 
 {
   "hash": "30aed5f442f41ea58732214f73cd65369cde9dafb80ec3c8dd8557df7819f82d",
@@ -196,40 +185,47 @@ Build script running, compiling HelloWorld
   "hex": "b5ee9c72410104010024000114ff00f4a413f4bcf2c80b010201620203000cd030f891f240000fa06707da89a1ae99c49503b8"
 }
 
-✅ Wrote compilation artifact to build/HelloWorld.compiled.json
+Wrote compilation artifact to build/HelloWorld.compiled.json
 ```
+
+> **Note:** Your hash should match exactly. The Tolk compiler is
+> deterministic — the same source code always produces the same bytecode.
+> If your hash differs, your contract code doesn't match the version in
+> this tutorial.
 
 The compiled output is saved to `build/HelloWorld.compiled.json`.
 This file contains the contract bytecode and is required for deployment.
 
 &nbsp;
 
-> ⚠️ **If the build fails:** Re-check `contracts/hello_world.tolk`
+> **Warning:** If the build fails, re-check `contracts/hello_world.tolk`
 > against the code in the previous step — a missing `}`, syntax error,
 > or typo in a function name is the most common cause.
 
 &nbsp;
 
-> ⚠️ **If you see `Contract 'HelloWorld' not found`:** The contract
-> name in the build command must exactly match your `--contractName`
-> from setup. If you used `HelloWorld`, the command is
+> **Warning:** If you see `Contract 'HelloWorld' not found`, the contract
+> name in the build command must exactly match your `--contractName` from
+> setup. If you used `HelloWorld`, the command is
 > `npx blueprint build HelloWorld`.
 
 &nbsp;
 
-> ✅ **Checkpoint:** Your hash matches, `build/HelloWorld.compiled.json`
+> **Checkpoint:** Your hash matches, `build/HelloWorld.compiled.json`
 > exists, and the terminal shows no errors. Move on to deployment.
 
 ---
 
-
 ## Deploy the contract
 
-The deployment of contract involves two major steps: creating a wrapper file and script.
-### 1. Create a wrapper
-The wrapper is a TypeScript class that acts as a bridge between your
-scripts and your deployed contract. Wrappers make it easy to interact with contracts from TypeScript.
-&nbsp;
+Deployment involves two steps: creating a wrapper and running a deploy
+script.
+
+### 1. Create the wrapper
+
+The wrapper is a TypeScript class that bridges your scripts and your
+deployed contract. It handles all TON-specific encoding so your scripts
+stay readable.
 
 Open `wrappers/HelloWorld.ts` and replace its contents with:
 ```typescript
@@ -271,6 +267,7 @@ export class HelloWorld implements Contract {
     }
 }
 ```
+
 ### Wrapper class details
 
 - **[`@ton/core`](https://www.npmjs.com/package/@ton/core)** — base TON
@@ -294,6 +291,11 @@ export class HelloWorld implements Contract {
   - Derives the contract address deterministically via `contractAddress(workchain, init)`
   - Returns a new `HelloWorld` instance ready for deployment
 
+&nbsp;
+
+> **Note:** On TON, the contract address is derived from the hash of the
+> code and initial data — you can compute it locally before sending any
+> transaction.
 
 &nbsp;
 
@@ -301,35 +303,56 @@ export class HelloWorld implements Contract {
   `provider.internal()` with:
   - `SendMode.PAY_GAS_SEPARATELY` — gas is paid from the attached value
   - An empty body — no message needed, the greeting is in the initial storage
-  - provider` here is `ContractProvider`** — scoped to this specific contract.It
-  uses methods like provider.internal() to send messages
+
+> **Note:** `provider` here is `ContractProvider` — scoped to this
+> specific contract. It's automatically injected when you call
+> `provider.open()` in the deploy script.
+
 &nbsp;
 
-> ⚠️ **Never set `value` to `0`.** The contract needs TON attached to
-> cover gas. `toNano('0.05')` is the minimum safe amount — any unused
+> **Warning:** Never set `value` to `0`. The contract needs TON attached
+> to cover gas. `toNano('0.05')` is the minimum safe amount — any unused
 > portion is returned to your wallet automatically.
-&nbsp;
+
+---
 
 ### 2. Create the deployment script
 
-Open the `./scripts/deployHelloWorld.ts` file and replace its content with the following code. It deploys the contract.
+> **Note:** Two types of `provider` are used in this tutorial:
+>
+> - `ContractProvider` (from `@ton/core`) — scoped to one contract.
+>   Used in wrapper methods like `sendDeploy()` to send messages and
+>   call getters on that specific contract.
+> - `NetworkProvider` (from `@ton/blueprint`) — scoped to the network.
+>   Used in scripts to open contracts, access your wallet via
+>   `provider.sender()`, and wait for deployment.
+>
+> When you call `provider.open(contract)`, the `NetworkProvider` creates
+> a `ContractProvider` behind the scenes and injects it automatically
+> into your wrapper methods.
+
+&nbsp;
+
+Open `scripts/deployHelloWorld.ts` and replace its contents with:
 ```typescript
 import { beginCell, toNano } from '@ton/core';
 import { HelloWorld } from '../wrappers/HelloWorld';
 import { compile, NetworkProvider } from '@ton/blueprint';
 
 export async function run(provider: NetworkProvider) {
-    const greeting = beginCell().storeStringTail("Hello World!").endCell();
-    const helloWorld=provider.open(
-        HelloWorld.createFromConfig(greeting ,await compile('HelloWorld'))
+    const greeting = beginCell()
+        .storeStringTail('Hello, TON!')
+        .endCell();
+
+    const helloWorld = provider.open(
+        HelloWorld.createFromConfig(greeting, await compile('HelloWorld'))
     );
 
-    await helloWorld.sendDeploy(provider.sender(),toNano('0.05'));
+    await helloWorld.sendDeploy(provider.sender(), toNano('0.05'));
     await provider.waitForDeploy(helloWorld.address);
-
-
 }
 ```
+
 ### Deployment script details
 
 - **`export async function run(provider: NetworkProvider)`** — the entry
@@ -337,7 +360,7 @@ export async function run(provider: NetworkProvider) {
   to the network and your wallet.
 
 - **`beginCell().storeStringTail('Hello, TON!').endCell()`** — converts
-  your string into a `cell`. The wrapper then wraps this cell as a
+  your string into a `cell`. The wrapper then stores this cell as a
   reference using `storeRef()`.
 
 - **`await compile('HelloWorld')`** — compiles the contract and returns
@@ -356,6 +379,8 @@ export async function run(provider: NetworkProvider) {
 - **`provider.waitForDeploy(helloWorld.address)`** — waits until the
   contract is live on-chain before continuing.
 
+---
+
 ### 3. Run the deployment script
 
 TON provides two networks:
@@ -369,15 +394,17 @@ This tutorial uses testnet.
 
 Before running the command, make sure:
 
-> ⚠️ **Your wallet is set to testnet.** If it's on mainnet, the
-> deployment will spend real TON. In Tonkeeper: Settings → Dev →
+> **Warning:** Your wallet must be set to testnet. If it's on mainnet,
+> the deployment will spend real TON. In Tonkeeper: Settings → Dev →
 > Switch to Testnet.
 
 &nbsp;
 
-> ⚠️ **You need at least 0.05 TON in your testnet wallet.** If you're
-> running low, see [how to get testnet Toncoin](https://docs.ton.org/ecosystem/wallet-apps/get-coins)
-> or request directly from the [Testnet Faucet](https://t.me/testgiver_ton_bot) on Telegram.
+> **Warning:** You need at least 0.05 TON in your testnet wallet. If
+> you're running low, see
+> [how to get testnet Toncoin](https://docs.ton.org/ecosystem/wallet-apps/get-coins)
+> or request directly from the
+> [Testnet Faucet](https://t.me/testgiver_ton_bot) on Telegram.
 
 &nbsp;
 
@@ -399,52 +426,63 @@ Contract deployed at address kQAyPdkp...
 You can view it at https://testnet.tonviewer.com/kQAyPdkp...
 ```
 
-> 💡 **No wallet installed?** Check the
+> **Note:** No wallet installed? Check the
 > [TON wallet guide](https://docs.ton.org/ecosystem/wallet-apps/tonkeeper)
 > to install and fund one before continuing.
 
 &nbsp;
 
-> ⚠️ **If you see `Contract was not deployed`:** Testnet can be slow.
-> Check [testnet.tonscan.io](https://testnet.tonscan.io) — if your
-> transaction appears there, the contract deployed successfully.
-> If not, then wait for some 15-30 seconds and try again.
+> **Warning:** If you see `Contract was not deployed`, testnet can be
+> slow. Check [testnet.tonscan.io](https://testnet.tonscan.io) — if your
+> transaction appears there, the contract deployed successfully. If not,
+> wait 15–30 seconds and try again.
 
 &nbsp;
 
-> ✅ **Checkpoint:** Your contract address is printed in the terminal
-> and visible on [testnet.tonscan.io](https://testnet.tonscan.io).
-> Copy it — you'll need it in the next step.
-
+> **Checkpoint:** Your contract address is printed in the terminal and
+> visible on [testnet.tonscan.io](https://testnet.tonscan.io). Copy it
+> — you'll need it in the next step.
 
 ---
 
-## Read the greeting ( Contract Interaction )
+## Read the greeting
 
-Now, our contract has been deployed and we have to read the greeting from chain and print in our terminal to see the output
-So let us first update our Wrapper file
+With the contract deployed, read the greeting back from the chain.
+First, update the wrapper with two new methods.
+
 ### 1. Update the wrapper
+
+Open `wrappers/HelloWorld.ts` and replace its contents with:
 ```typescript
-import { Contract, ContractProvider, Sender, SendMode, Cell, contractAddress, Address, beginCell } from '@ton/core';
-
-
+import {
+    Contract,
+    ContractProvider,
+    Sender,
+    SendMode,
+    Cell,
+    contractAddress,
+    Address,
+    beginCell,
+} from '@ton/core';
 
 export function helloWorldConfigToCell(greeting: Cell): Cell {
     return beginCell()
-        .storeRef(greeting).endCell();
+        .storeRef(greeting)
+        .endCell();
 }
 
 export class HelloWorld implements Contract {
-   
+    constructor(
+        readonly address: Address,
+        readonly init?: { code: Cell; data: Cell }
+    ) {}
 
-    constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
-
-
-    static createFromConfig(greeting:Cell, code: Cell, workchain = 0) {
+    static createFromConfig(greeting: Cell, code: Cell, workchain = 0) {
         const data = helloWorldConfigToCell(greeting);
         const init = { code, data };
         return new HelloWorld(contractAddress(workchain, init), init);
     }
+
     static createFromAddress(address: Address) {
         return new HelloWorld(address);
     }
@@ -457,17 +495,17 @@ export class HelloWorld implements Contract {
         });
     }
 
-
     async getGreeting(provider: ContractProvider): Promise<string> {
         const result = await provider.get('getGreeting', []);
         const cell = result.stack.readCell();
         return cell.beginParse().loadStringTail();
     }
-
 }
 ```
-### Updated Wrapper details:
-Two methods are added in existing wrapper file:
+
+### Updated wrapper details
+
+Two methods are added to the existing wrapper:
 
 **`createFromAddress()`** — creates a wrapper instance from an existing
 contract address. Unlike `createFromConfig()`, this is used when the
@@ -477,6 +515,7 @@ contract is already deployed and you just need to talk to it.
 deployed contract, reads the returned `cell`, parses it, and returns
 a plain JavaScript string.
 
+---
 
 ### 2. Create the interaction script
 
@@ -513,21 +552,24 @@ deployment.
   greeting as a plain string.
 - **`console.log()`** — prints the result to your terminal.
 
-### 3. Run the deployment script
+---
+
+### 3. Run the interaction script
+
 Before running, make sure:
 
-> ⚠️ **Your wallet is set to testnet.** If it's on mainnet, the call
-> will fail. In Tonkeeper: Settings → Dev → Switch to Testnet.
+> **Warning:** Your wallet must be set to testnet. If it's on mainnet,
+> the call will fail. In Tonkeeper: Settings → Dev → Switch to Testnet.
 
 &nbsp;
 
-> ⚠️ **Use the exact contract address from your deployment output.**
-> Copy it carefully — a single wrong character will cause the script
-> to fail silently or throw an address error.
+> **Warning:** Use the exact contract address from your deployment
+> output. Copy it carefully — a single wrong character will cause the
+> script to fail silently or throw an address error.
 
 &nbsp;
 
-> 💡 **Can't find your contract address?** Check your terminal output
+> **Note:** Can't find your contract address? Check your terminal output
 > from the deploy step, or look up your wallet on
 > [testnet.tonscan.io](https://testnet.tonscan.io) — the deployed
 > contract will appear in your recent transactions.
@@ -542,27 +584,53 @@ npx blueprint run readGreeting --testnet --tonconnect
 Expected output:
 ```
 Using file: readGreeting
-Connected to wallet at address: 0QDRl_r0pqWSObJfOBrVYY-uf4R3_MWRw8kMZJbwEuJNywCY
-Greeting: Hello World!
+Connected to wallet at address: 0QD...
+Greeting: Hello, TON!
 ```
-> 💡 **This call costs no gas.** Getters run locally on a node —
+
+> **Note:** This call costs no gas. Getters run locally on a node —
 > no transaction is sent to the network.
-&nbsp;
-
-> ⚠️ **If you see an address parsing error:** Make sure you replaced
-> `YOUR_CONTRACT_ADDRESS` in `readGreeting.ts` with your actual
-> contract address before running.
 
 &nbsp;
 
-> ✅ **Checkpoint:** `Greeting: Hello, TON!` is printed in your
-> terminal. Your contract is live, deployed, and readable on the
-> TON testnet. You're done.
+> **Warning:** If you see an address parsing error, make sure you
+> replaced `YOUR_CONTRACT_ADDRESS` in `readGreeting.ts` with your
+> actual contract address before running.
 
-> 🎉 **You just deployed your first smart contract on TON testnet.**
-> Your greeting is now permanently stored on-chain, readable by anyone.
-> Head to [testnet.tonviewer.com](https://testnet.tonviewer.com) and
-> paste your contract address to see it live in the explorer.
+&nbsp;
 
+> **Checkpoint:** `Greeting: Hello, TON!` is printed in your terminal.
+> Your contract is live, deployed, and readable on the TON testnet.
 
-The full code for this tutorial is available in the [GitHub repository](). It includes all contract files, scripts, and wrappers ready to use.
+&nbsp;
+
+> **Well done:** You just deployed your first smart contract on TON
+> testnet. Your greeting is permanently stored on-chain, readable by
+> anyone. Paste your contract address into
+> [testnet.tonviewer.com](https://testnet.tonviewer.com) to see it live
+> in the explorer.
+
+---
+
+The full code for this tutorial is available in the
+[GitHub repository](https://github.com/Heeral03/HelloWorld_Assignment).
+It includes all contract files, scripts, and wrappers ready to use.
+
+---
+## Rationale
+
+---
+## Footer
+
+**Last reviewed:** February 22, 2026
+
+**Versions used:**
+- Node.js v22.14.0
+- `@ton/blueprint` v0.43.0
+- `@ton/tolk-js` v1.2.0
+- `@ton/core` v0.63.1
+- TON testnet
+
+**Changelog:**
+- 2026-02-22 — Initial release. Validated end-to-end on TON testnet
+  with Blueprint v0.43.0 and Tolk v1.2.0.
