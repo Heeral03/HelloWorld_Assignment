@@ -567,7 +567,7 @@ a smart contract on TON testnet. Here's where to go from here:
 
 ## Rationale
 
-This tutorial targets developers who are new to TON but comfortable
+This tutorial assumes that the developer is new to TON but comfortable
 with CLI, Git, and TypeScript. Blueprint was chosen because it provides
 a single interface for compilation, deployment, and interaction —
 without requiring the reader to learn low-level TON tooling.
