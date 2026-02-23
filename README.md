@@ -120,14 +120,13 @@ fun onInternalMessage(in: InMessage) {
 
 ### Contract details
 
-**`Storage`** is where your contract remembers things. Think of it as a
-tiny database that stays on-chain between transactions. It holds one
+**`Storage`** is where your contract remembers things. It holds one
 value: the greeting, stored as a `cell`.
 
 &nbsp;
 
-> **Note:** Cell is TON's fundamental data storage unit. Everything
-> on-chain — strings, numbers, structs — is encoded into cells.
+> **Note:** Cell is TON's fundamental data storage unit.
+> Everything on-chain  is encoded into cells.
 
 &nbsp;
 
@@ -140,11 +139,6 @@ converts the struct back into a cell and writes it to persistent storage.
 **`getGreeting()`** is marked with `get fun`, making it a read-only getter.
 It returns the greeting with no transaction needed and no gas charged.
 
-&nbsp;
-
-> **Note:** The `lazy` keyword tells the compiler to defer reading storage
-> fields from the chain until they are actually accessed. This avoids
-> unnecessary reads and saves gas.
 
 &nbsp;
 
@@ -188,10 +182,6 @@ Compiled successfully! Cell BOC result:
 Wrote compilation artifact to build/HelloWorld.compiled.json
 ```
 
-> **Note:** Your hash should match exactly. The Tolk compiler is
-> deterministic — the same source code always produces the same bytecode.
-> If your hash differs, your contract code doesn't match the version in
-> this tutorial.
 
 The compiled output is saved to `build/HelloWorld.compiled.json`.
 This file contains the contract bytecode and is required for deployment.
@@ -270,26 +260,11 @@ export class HelloWorld implements Contract {
 
 ### Wrapper class details
 
-- **[`@ton/core`](https://www.npmjs.com/package/@ton/core)** — base TON
-  types library used throughout the wrapper.
-
 - **`helloWorldConfigToCell()`** — converts your greeting `cell` into
-  the initial storage layout the contract expects. `storeRef()` stores
-  the greeting as a cell reference, which matches how the `Storage`
-  struct reads it back.
-
-- **`HelloWorld` class** — implements the `Contract` interface from
-  `@ton/core`.
-
-- **`constructor`** — stores the contract's address and optional `init`
-  (code + data). The `init` is only needed at deploy time.
-
+  the initial storage layout the contract expects.
+  
 - **`createFromConfig()`** — static factory method for creating a new
-  undeployed contract instance. It:
-  - Converts the greeting into a storage `cell` via `helloWorldConfigToCell()`
-  - Bundles `code` + `data` into a `StateInit`
-  - Derives the contract address deterministically via `contractAddress(workchain, init)`
-  - Returns a new `HelloWorld` instance ready for deployment
+  undeployed contract instance.
 
 &nbsp;
 
@@ -318,18 +293,6 @@ export class HelloWorld implements Contract {
 
 ### 2. Create the deployment script
 
-> **Note:** Two types of `provider` are used in this tutorial:
->
-> - `ContractProvider` (from `@ton/core`) — scoped to one contract.
->   Used in wrapper methods like `sendDeploy()` to send messages and
->   call getters on that specific contract.
-> - `NetworkProvider` (from `@ton/blueprint`) — scoped to the network.
->   Used in scripts to open contracts, access your wallet via
->   `provider.sender()`, and wait for deployment.
->
-> When you call `provider.open(contract)`, the `NetworkProvider` creates
-> a `ContractProvider` behind the scenes and injects it automatically
-> into your wrapper methods.
 
 &nbsp;
 
@@ -356,12 +319,10 @@ export async function run(provider: NetworkProvider) {
 ### Deployment script details
 
 - **`export async function run(provider: NetworkProvider)`** — the entry
-  point Blueprint calls when you run the script. `provider` gives access
-  to the network and your wallet.
+  point Blueprint calls when you run the script. 
 
 - **`beginCell().storeStringTail('Hello, TON!').endCell()`** — converts
-  your string into a `cell`. The wrapper then stores this cell as a
-  reference using `storeRef()`.
+  your string into a `cell`.
 
 - **`await compile('HelloWorld')`** — compiles the contract and returns
   the bytecode as a `Cell`.
@@ -376,19 +337,11 @@ export async function run(provider: NetworkProvider) {
   the deployment transaction. `provider.sender()` is your wallet,
   `toNano('0.05')` is the gas attached.
 
-- **`provider.waitForDeploy(helloWorld.address)`** — waits until the
-  contract is live on-chain before continuing.
 
 ---
 
 ### 3. Run the deployment script
-
-TON provides two networks:
-
-- **Testnet** — developer sandbox, no real money required
-- **Mainnet** — production blockchain, uses real TON
-
-This tutorial uses testnet.
+This tutorial uses the Testnet Network.
 
 &nbsp;
 
@@ -558,9 +511,6 @@ deployment.
 
 Before running, make sure:
 
-> **Warning:** Your wallet must be set to testnet. If it's on mainnet,
-> the call will fail. In Tonkeeper: Settings → Dev → Switch to Testnet.
-
 &nbsp;
 
 > **Warning:** Use the exact contract address from your deployment
@@ -604,25 +554,62 @@ Greeting: Hello, TON!
 
 &nbsp;
 
-> **Well done:** You just deployed your first smart contract on TON
+> You just deployed your first smart contract on TON
 > testnet. Your greeting is permanently stored on-chain, readable by
 > anyone. Paste your contract address into
 > [testnet.tonviewer.com](https://testnet.tonviewer.com) to see it live
 > in the explorer.
 
----
-
-The full code for this tutorial is available in the
-[GitHub repository](https://github.com/Heeral03/HelloWorld_Assignment).
-It includes all contract files, scripts, and wrappers ready to use.
 
 ---
+
+## What's next
+
+You've completed the full workflow — write, compile, deploy, and read
+a smart contract on TON testnet. Here's where to go from here:
+
+- **[Counter Contract](https://docs.ton.org/contract-dev/first-smart-contract)** —
+  a more complex example introducing message handlers, opcodes, and
+  on-chain state updates.
+- **[Jettons](https://docs.ton.org/standard/tokens/jettons/overview)** —
+  TON's fungible token standard. Build your own token on-chain.
+- **[NFTs](https://docs.ton.org/standard/tokens/nft/overview)** —
+  TON's non-fungible token standard.
+- **[TON Documentation](https://docs.ton.org)** — complete reference
+  for everything in the TON ecosystem.
+
+---
+
 ## Rationale
+
+This tutorial targets developers who are new to TON but comfortable
+with CLI, Git, and TypeScript. Blueprint was chosen because it provides
+a single interface for compilation, deployment, and interaction —
+without requiring the reader to learn low-level TON tooling.
+
+Tolk was chosen over FunC for its readable syntax, automatic struct
+serialization, and active development.
+
+The greeting contract was chosen deliberately over a more complex
+example. The goal is to give a new developer a complete end-to-end
+picture of how smart contracts work on TON without introducing
+unnecessary complexity.
+
+The tutorial includes inline explanations, callouts, and warnings to
+give the reader a deeper understanding of the flow rather than just
+copy-pasting code. Troubleshooting callouts are placed inline at each
+step rather than in a dedicated section — so the reader sees the
+relevant warning exactly when they need it.
+
+With more time, I would add a dedicated Testing section, a
+workflow diagram showing the full message
+flow during deployment and deeper explanations of alternative approaches
+and trade-offs for each implementation decision
 
 ---
 ## Footer
 
-**Last reviewed:** February 22, 2026
+**Last reviewed:** February 23, 2026
 
 **Versions used:**
 - Node.js v22.14.0
