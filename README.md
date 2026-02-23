@@ -76,10 +76,7 @@ cd hello-world
 
 ## What is a smart contract?
 
-A smart contract is a program that lives on the blockchain. Once deployed,
-it runs exactly as written — anyone can interact with it and no one can
-take it down.
-
+A smart contract is a program that lives on the blockchain. 
 On TON, every smart contract has two things:
 
 - **Code** — what the contract can do
@@ -214,8 +211,7 @@ script.
 ### 1. Create the wrapper
 
 The wrapper is a TypeScript class that bridges your scripts and your
-deployed contract. It handles all TON-specific encoding so your scripts
-stay readable.
+deployed contract.
 
 Open `wrappers/HelloWorld.ts` and replace its contents with:
 ```typescript
@@ -262,15 +258,11 @@ export class HelloWorld implements Contract {
 
 - **`helloWorldConfigToCell()`** — converts your greeting `cell` into
   the initial storage layout the contract expects.
-  
-- **`createFromConfig()`** — static factory method for creating a new
-  undeployed contract instance.
 
 &nbsp;
 
-> **Note:** On TON, the contract address is derived from the hash of the
-> code and initial data — you can compute it locally before sending any
-> transaction.
+- **`createFromConfig()`** — static factory method for creating a new
+  undeployed contract instance.
 
 &nbsp;
 
@@ -280,8 +272,7 @@ export class HelloWorld implements Contract {
   - An empty body — no message needed, the greeting is in the initial storage
 
 > **Note:** `provider` here is `ContractProvider` — scoped to this
-> specific contract. It's automatically injected when you call
-> `provider.open()` in the deploy script.
+> specific contract.
 
 &nbsp;
 
@@ -378,10 +369,6 @@ Sent transaction
 Contract deployed at address kQAyPdkp...
 You can view it at https://testnet.tonviewer.com/kQAyPdkp...
 ```
-
-> **Note:** No wallet installed? Check the
-> [TON wallet guide](https://docs.ton.org/ecosystem/wallet-apps/tonkeeper)
-> to install and fund one before continuing.
 
 &nbsp;
 
@@ -538,8 +525,6 @@ Connected to wallet at address: 0QD...
 Greeting: Hello, TON!
 ```
 
-> **Note:** This call costs no gas. Getters run locally on a node —
-> no transaction is sent to the network.
 
 &nbsp;
 
@@ -587,7 +572,7 @@ with CLI, Git, and TypeScript. Blueprint was chosen because it provides
 a single interface for compilation, deployment, and interaction —
 without requiring the reader to learn low-level TON tooling.
 
-Tolk was chosen over FunC for its readable syntax, automatic struct
+Tolk was chosen over FunC for its readable syntax, automatic
 serialization, and active development.
 
 The greeting contract was chosen deliberately over a more complex
